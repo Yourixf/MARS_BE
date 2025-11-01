@@ -3,6 +3,7 @@ using FluentValidation.AspNetCore;
 using MARS_BE.Data;
 using MARS_BE.Features.Employees;
 using Microsoft.EntityFrameworkCore;
+using MARS_BE.Common.Errors;
 
 
 namespace MARS_BE;
@@ -21,21 +22,6 @@ public class Program
         builder.Services.AddControllers();
         
         builder.Services.AddScoped<IEmployeesService, EmployeesService>();
-
-
-        // ✅ standaardize errors as RFC 7807 ProblemDetails
-        builder.Services.AddProblemDetails(options =>
-        {
-            options.CustomizeProblemDetails = ctx =>
-            {
-                if (ctx.Exception is ArgumentException)
-                    ctx.ProblemDetails.Status = StatusCodes.Status400BadRequest;
-
-                if (ctx.Exception is KeyNotFoundException)
-                    ctx.ProblemDetails.Status = StatusCodes.Status404NotFound;
-            };
-        });
-
         
         // Swagger
         builder.Services.AddEndpointsApiExplorer();
@@ -46,6 +32,7 @@ public class Program
         builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         
         builder.Services.AddAutoMapper(typeof(Program).Assembly);
+        builder.Services.AddProblemDetailsPolicies();
 
 
         var app = builder.Build();
@@ -59,11 +46,10 @@ public class Program
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.Migrate();
         }
+        app.UseAppExceptionHandler();
 
         app.UseHttpsRedirection();
         
-        app.UseExceptionHandler();
-
         app.MapControllers();
 
         app.Run();

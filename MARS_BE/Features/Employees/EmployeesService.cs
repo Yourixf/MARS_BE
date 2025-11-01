@@ -3,6 +3,7 @@ using MARS_BE.Data;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using MARS_BE.Common.Errors;
 
 namespace MARS_BE.Features.Employees;
 
@@ -47,7 +48,7 @@ public sealed class EmployeesService : IEmployeesService
         // Uniekheidscheck e-mail (naast DB unique index voor nette fout)
         var existsEmail = await _db.Employees.IgnoreQueryFilters()
                              .AnyAsync(x => x.Email == dto.Email);
-        if (existsEmail) throw new ArgumentException($"Email '{dto.Email}' already exists.");
+        if (existsEmail) throw new ConflictException($"Email '{dto.Email}' already exists.");
 
         var e = _mapper.Map<Employee>(dto);
         e.Id = Guid.NewGuid();
@@ -69,7 +70,7 @@ public sealed class EmployeesService : IEmployeesService
         {
             var existsEmail = await _db.Employees.IgnoreQueryFilters()
                                  .AnyAsync(x => x.Email == dto.Email);
-            if (existsEmail) throw new ArgumentException($"Email '{dto.Email}' already exists.");
+            if (existsEmail) throw new ConflictException($"Email '{dto.Email}' already exists.");
             e.Email = dto.Email;
         }
         
@@ -89,7 +90,7 @@ public sealed class EmployeesService : IEmployeesService
         {
             var existsEmail = await _db.Employees.IgnoreQueryFilters()
                                  .AnyAsync(x => x.Email == dto.Email);
-            if (existsEmail) throw new ArgumentException($"Email '{dto.Email}' already exists.");
+            if (existsEmail) throw new ConflictException($"Email '{dto.Email}' already exists.");
         }
 
         _mapper.Map(dto, e);
