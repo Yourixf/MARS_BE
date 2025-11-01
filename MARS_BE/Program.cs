@@ -44,6 +44,9 @@ public class Program
         // FluentValidation: scan assembly
         builder.Services.AddFluentValidationAutoValidation();
         builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+        
+        builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
 
         var app = builder.Build();
 

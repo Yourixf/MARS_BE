@@ -8,16 +8,12 @@ public sealed class EmployeesController(IEmployeesService service) : ControllerB
 {
     // GET /api/v1/employees?search=&page=1&pageSize=20&includeInactive=false
     [HttpGet]
-    public async Task<ActionResult> GetAll(
-        [FromQuery] string? search,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        [FromQuery] bool includeInactive = false)
+    public async Task<ActionResult> GetAll([FromQuery] EmployeesQuery q)
     {
-        if (page <= 0 || pageSize is <= 0 or > 200)
+        if (q.Page <= 0 || q.PageSize is <= 0 or > 200)
             return BadRequest("Invalid pagination.");
 
-        var result = await service.GetAllAsync(search, page, pageSize, includeInactive);
+        var result = await service.GetAllAsync(q);
         return Ok(result);
     }
 
