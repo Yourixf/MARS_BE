@@ -14,6 +14,7 @@ public sealed class EmployeeCreateValidator : AbstractValidator<EmployeeCreateDt
     }
 }
 
+// PATCH
 public sealed class EmployeeUpdateValidator : AbstractValidator<EmployeeUpdateDto>
 {
     public EmployeeUpdateValidator()
@@ -21,7 +22,18 @@ public sealed class EmployeeUpdateValidator : AbstractValidator<EmployeeUpdateDt
         RuleFor(x => x.FirstName).MaximumLength(100);
         RuleFor(x => x.LastName).MaximumLength(100);
         RuleFor(x => x.Email).EmailAddress().When(x => x.Email is not null).MaximumLength(200);
-        RuleFor(x => x.HireDate).LessThanOrEqualTo(DateTime.UtcNow.AddDays(1))
-            .When(x => x.HireDate is not null);
+        RuleFor(x => x.HireDate).LessThanOrEqualTo(DateTime.UtcNow.AddDays(1)).When(x => x.HireDate is not null);
+    }
+}
+
+// PUT (replace)
+public sealed class EmployeeReplaceValidator : AbstractValidator<EmployeeReplaceDto>
+{
+    public EmployeeReplaceValidator()
+    {
+        RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(200);
+        RuleFor(x => x.HireDate).LessThanOrEqualTo(DateTime.UtcNow.AddDays(1));
     }
 }

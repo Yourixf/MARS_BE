@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MARS_BE.Data;
+using MARS_BE.Features.Employees;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -18,6 +19,9 @@ public class Program
 
         // Controllers (niet-short-hand)
         builder.Services.AddControllers();
+        
+        builder.Services.AddScoped<IEmployeesService, EmployeesService>();
+
 
         // ✅ standaardize errors as RFC 7807 ProblemDetails
         builder.Services.AddProblemDetails(options =>

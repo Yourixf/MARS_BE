@@ -28,3 +28,13 @@ public sealed class EmployeeUpdateDto
     public DateTime? HireDate { get; init; }
     public bool? IsActive { get; init; }
 }
+
+public sealed class EmployeeReplaceDto
+{
+    public string EmployeeNo { get; init; } = "";
+    public string FirstName { get; init; } = "";
+    public string LastName  { get; init; } = "";
+    public string Email   { get; init; } = "";
+    public DateTime HireDate { get; init; }
+    public bool IsActive { get; init; }
+}
