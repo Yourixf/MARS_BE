@@ -14,4 +14,9 @@ public sealed class EmployeesQuery
 
     public string? SortBy { get; init; }   // e.g. lastName, firstName, hireDate, email
     public string? SortDir { get; init; }  // asc | desc
+    
+    // Custom database fields
+    public string? ExtraKey { get; init; }
+    public string? ExtraEquals { get; init; }
+
 }

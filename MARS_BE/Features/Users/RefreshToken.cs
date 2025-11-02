@@ -1,0 +1,16 @@
+﻿namespace MARS_BE.Features.Users;
+
+public sealed class RefreshToken
+{
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public string Token { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? RevokedAt { get; set; }
+    public string? DeviceId { get; set; }
+    public string? Ip { get; set; }
+    public string? UserAgent { get; set; }
+
+    public bool IsActive => RevokedAt is null && DateTime.UtcNow < ExpiresAt;
+}

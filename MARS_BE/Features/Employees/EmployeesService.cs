@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using MARS_BE.Common.Errors;
+using MARS_BE.Common.Utils;
 
 namespace MARS_BE.Features.Employees;
 
@@ -65,7 +66,7 @@ public sealed class EmployeesService : IEmployeesService
     {
         var e = await _db.Employees.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id);
         if (e is null) return null;
-
+        
         if (dto.Email is not null && !string.Equals(dto.Email, e.Email, StringComparison.OrdinalIgnoreCase))
         {
             var existsEmail = await _db.Employees.IgnoreQueryFilters()
@@ -73,6 +74,8 @@ public sealed class EmployeesService : IEmployeesService
             if (existsEmail) throw new ConflictException($"Email '{dto.Email}' already exists.");
             e.Email = dto.Email;
         }
+        
+        e.Extras.MergeFrom(dto.Extras);
         
         _mapper.Map(dto, e);
         await _db.SaveChangesAsync();

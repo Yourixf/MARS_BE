@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using MARS_BE.Common.Auth; 
 
 namespace MARS_BE.Features.Employees;
 
@@ -7,6 +9,7 @@ namespace MARS_BE.Features.Employees;
 public sealed class EmployeesController(IEmployeesService service) : ControllerBase
 {
     // GET /api/v1/employees?search=&page=1&pageSize=20&includeInactive=false
+    [Authorize(Policy = Permissions.EmployeesRead)]
     [HttpGet]
     public async Task<ActionResult> GetAll([FromQuery] EmployeesQuery q)
     {
@@ -18,6 +21,7 @@ public sealed class EmployeesController(IEmployeesService service) : ControllerB
     }
 
     // GET /api/v1/employees/{id}
+    [Authorize(Policy = Permissions.EmployeesRead)]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult> GetById(Guid id, [FromQuery] bool includeInactive = false)
     {
@@ -26,6 +30,7 @@ public sealed class EmployeesController(IEmployeesService service) : ControllerB
     }
 
     // POST /api/v1/employees
+    [Authorize(Policy = Permissions.EmployeesWrite)]
     [HttpPost]
     public async Task<ActionResult> Create([FromBody] EmployeeCreateDto dto)
     {
@@ -34,7 +39,7 @@ public sealed class EmployeesController(IEmployeesService service) : ControllerB
         var created = await service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
-
+    [Authorize(Policy = Permissions.EmployeesWrite)]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult> Replace(Guid id, [FromBody] EmployeeReplaceDto dto)
     {
@@ -42,7 +47,7 @@ public sealed class EmployeesController(IEmployeesService service) : ControllerB
         var updated = await service.ReplaceAsync(id, dto);
         return updated is null ? NotFound() : Ok(updated);
     }
-    
+    [Authorize(Policy = Permissions.EmployeesWrite)]
     [HttpPatch("{id:guid}")]
     public async Task<ActionResult> Patch(Guid id, [FromBody] EmployeeUpdateDto dto)
     {

@@ -9,6 +9,7 @@ public sealed class EmployeeReadDto
     public string Email     { get; init; } = "";
     public DateTime HireDate { get; init; }
     public bool IsActive { get; init; }
+    public Dictionary<string, object?> Extras { get; init; } = new();
 }
 
 public sealed class EmployeeCreateDto
@@ -18,6 +19,7 @@ public sealed class EmployeeCreateDto
     public string LastName  { get; init; } = "";
     public string Email     { get; init; } = "";
     public DateTime HireDate { get; init; }
+    public Dictionary<string, object?> Extras { get; init; } = new();
 }
 
 public sealed class EmployeeUpdateDto
@@ -27,6 +29,8 @@ public sealed class EmployeeUpdateDto
     public string? Email     { get; init; }
     public DateTime? HireDate { get; init; }
     public bool? IsActive { get; init; }
+    public Dictionary<string, object?> Extras { get; init; } = new();
+
 }
 
 public sealed class EmployeeReplaceDto
@@ -37,4 +41,5 @@ public sealed class EmployeeReplaceDto
     public string Email   { get; init; } = "";
     public DateTime HireDate { get; init; }
     public bool IsActive { get; init; }
+    public Dictionary<string, object?> Extras { get; init; } = new();
 }

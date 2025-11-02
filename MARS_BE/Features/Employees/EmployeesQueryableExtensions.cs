@@ -39,6 +39,18 @@ internal static class EmployeesQueryableExtensions
         if (!string.IsNullOrWhiteSpace(f.Email))
             q = q.WhereIlike(e => e.Email, f.Email);
 
+        if (!string.IsNullOrWhiteSpace(f.ExtraKey) && f.ExtraEquals is not null)
+        {
+            var key = f.ExtraKey;
+            var val = f.ExtraEquals;
+
+            // Simple equal comparison via ToString(); for real types, we later improve it 
+            q = q.Where(e => e.Extras.ContainsKey(key) &&
+                             e.Extras[key] != null &&
+                             e.Extras[key]!.ToString() == val);
+        }
+
+        
         return q;
     }
 

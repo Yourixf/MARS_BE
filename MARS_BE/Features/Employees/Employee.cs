@@ -12,6 +12,6 @@ public class Employee
     // Soft delete / status
     public bool IsActive { get; set; } = true;
 
-    // Voor later (custom velden per org)
-    // public Dictionary<string, object> Custom { get; set; } = new();
+    // Custom fields
+    public Dictionary<string, object?> Extras { get; set; } = new();
 }
