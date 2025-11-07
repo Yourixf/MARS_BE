@@ -11,7 +11,8 @@ using System.Text;
 using MARS_BE.Features.Users;
 using MARS_BE.Infrastructure.Auth;
 using MARS_BE.Common.Auth;
-
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace MARS_BE;
 
@@ -44,7 +45,7 @@ public class Program
                 Scheme = "bearer",
                 BearerFormat = "JWT",
                 In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-                Description = "Enter 'Bearer {token}'"
+                Description = "Enter (no Bearer prefix): '{token}'"
             });
 
             c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
@@ -73,23 +74,14 @@ public class Program
         
         // Bind JwtOptions
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+
         var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 
-        // Identity (no UI)
-        builder.Services.AddIdentityCore<ApplicationUser>(opt =>
-            {
-                opt.Password.RequiredLength = 8;
-                opt.Password.RequireNonAlphanumeric = false;
-                opt.User.RequireUniqueEmail = true;
-            })
-            .AddRoles<IdentityRole<Guid>>()
-            .AddEntityFrameworkStores<AppDbContext>();
-
-        // Authentication + JWT
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        builder.Services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(o =>
             {
-                o.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                o.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
@@ -100,8 +92,27 @@ public class Program
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
                     ClockSkew = TimeSpan.Zero
                 };
+
+                o.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = ctx =>
+                    {
+                        Console.WriteLine($"JWT auth failed: {ctx.Exception.GetType().Name} - {ctx.Exception.Message}");
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
+        
+        // Identity (no UI)
+        builder.Services.AddIdentityCore<ApplicationUser>(opt =>
+            {
+                opt.Password.RequiredLength = 8;
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.User.RequireUniqueEmail = true;
+            })
+            .AddRoles<IdentityRole<Guid>>()
+            .AddEntityFrameworkStores<AppDbContext>();
 
         // Authorization policies (RBAC via "perm" claims)
         builder.Services.AddAuthorization(opt =>
