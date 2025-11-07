@@ -1,23 +1,17 @@
-﻿// using-directives:
-using MARS_BE.Features.Employees;
-using MARS_BE.Features.Users;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using MARS_BE.Features.Employees;
 using Microsoft.EntityFrameworkCore;
 
 namespace MARS_BE.Data;
 
-public sealed class AppDbContext
-    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+public sealed class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<Employee> Employees => Set<Employee>();
-    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
-        base.OnModelCreating(b); // IMPORTANT for Identity tables
+        base.OnModelCreating(b);
 
         b.Entity<Employee>(e =>
         {
@@ -29,12 +23,5 @@ public sealed class AppDbContext
         });
 
         b.Entity<Employee>().HasQueryFilter(e => e.IsActive);
-
-        b.Entity<RefreshToken>(e =>
-        {
-            e.HasKey(x => x.Id);
-            e.Property(x => x.Token).IsRequired();
-            e.HasIndex(x => new { x.UserId, x.Token }).IsUnique();
-        });
     }
 }

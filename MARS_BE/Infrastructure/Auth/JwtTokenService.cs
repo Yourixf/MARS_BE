@@ -1,61 +1,43 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using MARS_BE.Features.Users;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace MARS_BE.Infrastructure.Auth;
 
 public interface IJwtTokenService
 {
-    string CreateAccessToken(ApplicationUser user, IEnumerable<Claim> extraClaims);
-    (string token, DateTime expiresAt) CreateRefreshToken();
+    string GenerateToken(string username);
 }
 
-public sealed class JwtTokenService : IJwtTokenService
+public class JwtTokenService : IJwtTokenService
 {
-    private readonly JwtOptions _opt;
-    private readonly SymmetricSecurityKey _key;
+    private readonly JwtOptions _options;
 
-    public JwtTokenService(IOptions<JwtOptions> opt)
+    public JwtTokenService(Microsoft.Extensions.Options.IOptions<JwtOptions> options)
     {
-        _opt = opt.Value;
-        _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_opt.Key));
+        _options = options.Value;
     }
 
-    public string CreateAccessToken(ApplicationUser user, IEnumerable<Claim> extraClaims)
+    public string GenerateToken(string username)
     {
-        var now = DateTime.UtcNow;
-
-        var claims = new List<Claim>
+        var claims = new[]
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new("tenant_id", user.TenantId.ToString()),
-            new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-            new("name", user.DisplayName ?? user.UserName ?? string.Empty),
+            new Claim(JwtRegisteredClaimNames.Sub, username),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
-        claims.AddRange(extraClaims);
 
-        var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);
-        var jwt = new JwtSecurityToken(
-            issuer: _opt.Issuer,
-            audience: _opt.Audience,
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: _options.Issuer,
+            audience: _options.Audience,
             claims: claims,
-            notBefore: now,
-            expires: now.AddMinutes(_opt.AccessTokenMinutes),
+            expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: creds
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(jwt);
-    }
-
-    public (string token, DateTime expiresAt) CreateRefreshToken()
-    {
-        var bytes = RandomNumberGenerator.GetBytes(64);
-        var token = Convert.ToBase64String(bytes);
-        var expires = DateTime.UtcNow.AddDays(_opt.RefreshTokenDays);
-        return (token, expires);
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
