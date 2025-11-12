@@ -5,11 +5,13 @@ using System.Text;
 
 namespace MARS_BE.Infrastructure.Auth;
 
+// Defines a contract for token generation (Interface)
 public interface IJwtTokenService
 {
     string GenerateToken(string username);
 }
 
+// Injects JwtOptions 
 public class JwtTokenService : IJwtTokenService
 {
     private readonly JwtOptions _options;
@@ -19,6 +21,7 @@ public class JwtTokenService : IJwtTokenService
         _options = options.Value;
     }
 
+    // Makes an array of claims
     public string GenerateToken(string username)
     {
         var claims = new[]
@@ -27,9 +30,11 @@ public class JwtTokenService : IJwtTokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
+        // Turns secret key into bytes, makes SigningCredentials object with HS256 algorithm
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+        // Builds JWT token
         var token = new JwtSecurityToken(
             issuer: _options.Issuer,
             audience: _options.Audience,
@@ -38,6 +43,7 @@ public class JwtTokenService : IJwtTokenService
             signingCredentials: creds
         );
 
+        // Serializes token to a string (what is send to client)
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

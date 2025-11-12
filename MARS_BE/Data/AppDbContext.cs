@@ -24,4 +24,6 @@ public sealed class AppDbContext : DbContext
 
         b.Entity<Employee>().HasQueryFilter(e => e.IsActive);
     }
+    
+    
 }
