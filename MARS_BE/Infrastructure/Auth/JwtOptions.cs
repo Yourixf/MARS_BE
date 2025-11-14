@@ -1,8 +1,8 @@
 ﻿namespace MARS_BE.Infrastructure.Auth;
 
-public class JwtOptions
+public sealed class JwtOptions
 {
-    public string Issuer { get; set; } = string.Empty;
-    public string Audience { get; set; } = string.Empty;
-    public string Key { get; set; } = string.Empty;
+    public string Issuer { get; set; } = default!;
+    public string Audience { get; set; } = default!;
+    public string Key { get; set; } = default!; // ≥32 chars voor HS256
 }

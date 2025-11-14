@@ -1,9 +1,13 @@
-﻿using MARS_BE.Features.Employees;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using MARS_BE.Features.Users;
+using MARS_BE.Features.Employees;
 
 namespace MARS_BE.Data;
 
-public sealed class AppDbContext : DbContext
+public sealed class AppDbContext
+    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -24,6 +28,4 @@ public sealed class AppDbContext : DbContext
 
         b.Entity<Employee>().HasQueryFilter(e => e.IsActive);
     }
-    
-    
 }

@@ -34,7 +34,6 @@ public sealed class EmployeesService : IEmployeesService
         return new PagedResult<EmployeeReadDto>(items, q.Page, q.PageSize, total);
     }
 
-
     public async Task<EmployeeReadDto?> GetByIdAsync(Guid id, bool includeInactive)
     {
         var q = _db.Employees.AsNoTracking();
@@ -46,10 +45,13 @@ public sealed class EmployeesService : IEmployeesService
 
     public async Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto)
     {
-        // Uniekheidscheck e-mail (naast DB unique index voor nette fout)
-        var existsEmail = await _db.Employees.IgnoreQueryFilters()
-                             .AnyAsync(x => x.Email == dto.Email);
-        if (existsEmail) throw new ConflictException($"Email '{dto.Email}' already exists.");
+        // Uniqueness check on email (besides DB unique index, for a clean error)
+        var existsEmail = await _db.Employees
+            .IgnoreQueryFilters()
+            .AnyAsync(x => x.Email == dto.Email);
+
+        if (existsEmail)
+            throw new ConflictException($"Email '{dto.Email}' already exists.");
 
         var e = _mapper.Map<Employee>(dto);
         e.Id = Guid.NewGuid();
@@ -61,41 +63,60 @@ public sealed class EmployeesService : IEmployeesService
         return _mapper.Map<EmployeeReadDto>(e);
     }
 
-    // PATCH (partial)
+    // PATCH (partial update)
     public async Task<EmployeeReadDto?> UpdateAsync(Guid id, EmployeeUpdateDto dto)
     {
-        var e = await _db.Employees.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id);
+        var e = await _db.Employees
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
         if (e is null) return null;
         
-        if (dto.Email is not null && !string.Equals(dto.Email, e.Email, StringComparison.OrdinalIgnoreCase))
+        // Handle email uniqueness separately (only when it actually changes)
+        if (dto.Email is not null && 
+            !string.Equals(dto.Email, e.Email, StringComparison.OrdinalIgnoreCase))
         {
-            var existsEmail = await _db.Employees.IgnoreQueryFilters()
-                                 .AnyAsync(x => x.Email == dto.Email);
-            if (existsEmail) throw new ConflictException($"Email '{dto.Email}' already exists.");
+            var existsEmail = await _db.Employees
+                .IgnoreQueryFilters()
+                .AnyAsync(x => x.Email == dto.Email);
+
+            if (existsEmail)
+                throw new ConflictException($"Email '{dto.Email}' already exists.");
+
             e.Email = dto.Email;
         }
         
+        // Merge JSONB "Extras" values from DTO into current entity
         e.Extras.MergeFrom(dto.Extras);
         
+        // Map remaining non-null fields from DTO onto the entity
         _mapper.Map(dto, e);
         await _db.SaveChangesAsync();
         
         return _mapper.Map<EmployeeReadDto>(e);
     }
 
-    // PUT (replace): volledige vervanging (EmployeeNo blijft bewust ongewijzigd)
+    // PUT (replace): full replacement (EmployeeNo intentionally remains unchanged)
     public async Task<EmployeeReadDto?> ReplaceAsync(Guid id, EmployeeReplaceDto dto)
     {
-        var e = await _db.Employees.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id);
+        var e = await _db.Employees
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
         if (e is null) return null;
 
+        // Email uniqueness check if email is changed
         if (!string.Equals(dto.Email, e.Email, StringComparison.OrdinalIgnoreCase))
         {
-            var existsEmail = await _db.Employees.IgnoreQueryFilters()
-                                 .AnyAsync(x => x.Email == dto.Email);
-            if (existsEmail) throw new ConflictException($"Email '{dto.Email}' already exists.");
+            var existsEmail = await _db.Employees
+                .IgnoreQueryFilters()
+                .AnyAsync(x => x.Email == dto.Email);
+
+            if (existsEmail)
+                throw new ConflictException($"Email '{dto.Email}' already exists.");
         }
 
+        // Map DTO onto entity (EmployeeNo is ignored in mapping profile)
         _mapper.Map(dto, e);
         await _db.SaveChangesAsync();
 
@@ -106,6 +127,7 @@ public sealed class EmployeesService : IEmployeesService
     {
         var e = await _db.Employees.FirstOrDefaultAsync(x => x.Id == id);
         if (e is null) return false;
+
         e.IsActive = false;
         await _db.SaveChangesAsync();
         return true;

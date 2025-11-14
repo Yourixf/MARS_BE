@@ -4,12 +4,9 @@ namespace MARS_BE.Features.Users;
 
 public sealed class ApplicationUser : IdentityUser<Guid>
 {
-    // Multi-tenant ready, even if we use it later
-    // public Guid TenantId { get; set; } = Guid.Empty;
-
-    // public string DisplayName { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
-
-    // Optional 1-1 mapping to Employee later:
-    // public Guid? EmployeeId { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? Department { get; set; }
+    public string? JobTitle { get; set; }
 }
