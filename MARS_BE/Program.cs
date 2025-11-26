@@ -15,6 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Register controllers (API endpoints)
 builder.Services.AddControllers();
 
+// Register user service layer
+builder.Services.AddScoped<IUsersService, UsersService>();
 
 // AutoMapper: scan current assembly for Profile classes
 builder.Services.AddAutoMapper(typeof(Program));
